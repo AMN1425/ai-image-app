@@ -2,16 +2,19 @@ import streamlit as st
 from PIL import Image
 import torch
 from torchvision import models, transforms
-import json
 import os
+import json
 
 # =========================
 # إعداد الصفحة
 # =========================
-st.set_page_config(page_title="كاشف الصور الذكي", layout="centered")
+st.set_page_config(
+    page_title="نظام تصنيف الصور الذكي",
+    layout="centered"
+)
 
 # =========================
-# واجهة عربية
+# واجهة احترافية
 # =========================
 st.markdown("""
 <style>
@@ -25,11 +28,11 @@ html, body, [class*="css"] {
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🤖 كاشف الصور الذكي")
-st.write("ارفع صورة أو استخدم الكاميرا وسيتم التعرف على الصورة")
+st.title("🤖 نظام تصنيف الصور باستخدام الذكاء الاصطناعي")
+st.write("يقوم هذا النظام بتحليل الصور وتحديد محتواها باستخدام نموذج تعلم عميق")
 
 # =========================
-# قاموس ترجمة بسيط
+# قاموس عربي
 # =========================
 AR_DICT = {
     "cat": "قطة",
@@ -42,20 +45,13 @@ AR_DICT = {
     "table": "طاولة",
     "bird": "طائر",
     "pizza": "بيتزا",
-    "bus": "حافلة",
-    "truck": "شاحنة",
-    "horse": "حصان",
-    "sheep": "خروف",
-    "cow": "بقرة",
-    "tv": "تلفاز",
-    "keyboard": "لوحة مفاتيح",
-    "laptop": "حاسوب محمول",
-    "phone": "هاتف"
+    "phone": "هاتف",
+    "laptop": "حاسوب محمول"
 }
 
 def translate(label):
     label = label.lower()
-    return AR_DICT.get(label, label)
+    return AR_DICT.get(label, f"غير معروف ({label})")
 
 # =========================
 # تحميل labels
@@ -83,58 +79,65 @@ model = load_model()
 # تجهيز الصورة
 # =========================
 transform = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.CenterCrop(224),
+    transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406],
                          [0.229, 0.224, 0.225])
 ])
 
 # =========================
-# اختيار الإدخال
+# إدخال الصورة
 # =========================
-option = st.radio("اختر طريقة الإدخال:", ["رفع صورة", "الكاميرا"])
+option = st.radio("اختر طريقة إدخال الصورة:", ["رفع صورة", "التقاط بالكاميرا"])
 
 image = None
 
 if option == "رفع صورة":
-    uploaded = st.file_uploader("ارفع صورة", type=["jpg", "png", "jpeg"])
-    if uploaded:
-        image = Image.open(uploaded).convert("RGB")
+    file = st.file_uploader("ارفع صورة", type=["jpg", "jpeg", "png"])
+    if file:
+        image = Image.open(file).convert("RGB")
 
-elif option == "الكاميرا":
-    camera = st.camera_input("التقط صورة")
-    if camera:
-        image = Image.open(camera).convert("RGB")
+elif option == "التقاط بالكاميرا":
+    cam = st.camera_input("التقط صورة")
+    if cam:
+        image = Image.open(cam).convert("RGB")
 
 # =========================
-# تحليل الصورة
+# التحليل
 # =========================
 if image:
-    st.image(image, caption="📷 الصورة المدخلة", use_container_width=True)
+    st.image(image, caption="الصورة المدخلة", use_container_width=True)
 
-    with st.spinner("🔍 جاري التحليل..."):
+    with st.spinner("جاري تحليل الصورة..."):
         tensor = transform(image).unsqueeze(0)
 
         with torch.no_grad():
             output = model(tensor)
-
-        probs = torch.nn.functional.softmax(output, dim=1)[0]
+            probs = torch.nn.functional.softmax(output, dim=1)[0]
 
         best_idx = torch.argmax(probs).item()
         confidence = probs[best_idx].item()
 
-        label_en = labels[best_idx] if labels else "unknown"
+        label_en = labels[best_idx] if best_idx < len(labels) else "unknown"
         label_ar = translate(label_en)
 
-        st.markdown("## 🎯 النتيجة النهائية")
-        st.success(f"التصنيف: {label_ar}")
-        st.write(f"📊 نسبة الثقة: {round(confidence * 100, 2)}%")
+    # =========================
+    # النتيجة
+    # =========================
+    st.subheader("📊 النتيجة النهائية")
 
-        st.progress(float(confidence))
+    st.success(f"🎯 التصنيف: {label_ar}")
+    st.write(f"📈 نسبة الثقة: {round(confidence * 100, 2)}%")
 
-        if confidence < 0.5:
-            st.warning("⚠️ النموذج غير متأكد من النتيجة")
+    st.progress(float(confidence))
+
+    # تقييم الثقة
+    if confidence > 0.7:
+        st.success("✔️ دقة عالية في النتيجة")
+    elif confidence > 0.4:
+        st.warning("⚠️ دقة متوسطة")
+    else:
+        st.error("❌ دقة منخفضة - حاول صورة أوضح")
 
 else:
     st.info("⬆️ الرجاء رفع صورة أو استخدام الكاميرا")
