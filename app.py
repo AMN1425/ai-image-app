@@ -84,8 +84,8 @@ AR_DICT = {
 }
 
 def translate(label):
-label = label.lower()
-return AR_DICT.get(label, f"غير معروف ({label})")
+    label = label.lower()
+    return AR_DICT.get(label, f"غير معروف ({label})")
 
 # =========================
 
