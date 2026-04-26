@@ -14,35 +14,32 @@ st.set_page_config(
 )
 
 # =========================
-# واجهة احترافية
+# 🎨 واجهة احترافية
 # =========================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
-/* الخلفية */
-html, body, [class*="css"] {
+.stApp {
+    background-color: #0b1220;
     font-family: 'Cairo', sans-serif;
-    direction: rtl;
-    text-align: right;
-    background: linear-gradient(135deg, #eef2ff, #ffffff);
 }
 
 /* العنوان */
 h1 {
+    color: #38bdf8;
     text-align: center;
-    color: #1f2937;
-    font-weight: 700;
+    font-weight: 800;
 }
 
-/* الحاوية */
-.block-container {
-    padding: 2rem;
+/* النص */
+p, span, label {
+    color: #e2e8f0;
 }
 
 /* الأزرار */
 .stButton>button {
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    background: #2563eb;
     color: white;
     border-radius: 10px;
     padding: 10px 20px;
@@ -51,31 +48,37 @@ h1 {
 }
 
 .stButton>button:hover {
-    transform: scale(1.03);
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    background: #1d4ed8;
 }
 
 /* صندوق النتائج */
 .result-box {
-    background: white;
+    background: #111827;
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    margin-top: 20px;
+    border: 1px solid #1f2937;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
 /* شريط التقدم */
 .stProgress > div > div {
-    background-color: #4f46e5;
+    background-color: #38bdf8;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # =========================
-# العنوان
+# العنوان + الأسماء
 # =========================
-st.title("🤖 نظام تصنيف الصور الذكي")
-st.write("ارفع صورة أو استخدم الكاميرا وسيتم التعرف على محتواها باستخدام الذكاء الاصطناعي")
+st.markdown("""
+<h1>🤖 نظام تصنيف الصور الذكي</h1>
+
+<h4 style="text-align:center; color:#38bdf8;">
+تم تطويره بواسطة: <b>أيمن اليزيدي</b> و <b>خالد القحطاني</b>
+</h4>
+""", unsafe_allow_html=True)
+
+st.write("ارفع صورة أو استخدم الكاميرا وسيتم التعرف على محتواها")
 
 # =========================
 # قاموس عربي
@@ -137,7 +140,7 @@ transform = transforms.Compose([
 # =========================
 # إدخال الصورة
 # =========================
-option = st.radio("اختر طريقة إدخال الصورة:", ["رفع صورة", "التقاط بالكاميرا"])
+option = st.radio("اختر طريقة إدخال الصورة:", ["رفع صورة", "كاميرا"])
 
 image = None
 
@@ -146,7 +149,7 @@ if option == "رفع صورة":
     if file:
         image = Image.open(file).convert("RGB")
 
-elif option == "التقاط بالكاميرا":
+elif option == "كاميرا":
     cam = st.camera_input("التقط صورة")
     if cam:
         image = Image.open(cam).convert("RGB")
@@ -157,7 +160,7 @@ elif option == "التقاط بالكاميرا":
 if image:
     st.image(image, caption="📷 الصورة المدخلة", use_container_width=True)
 
-    with st.spinner("🔍 جاري تحليل الصورة..."):
+    with st.spinner("🔍 جاري التحليل..."):
         tensor = transform(image).unsqueeze(0)
 
         with torch.no_grad():
@@ -182,11 +185,11 @@ if image:
     st.progress(float(confidence))
 
     if confidence > 0.7:
-        st.success("✔️ دقة عالية في النتيجة")
+        st.success("✔️ دقة عالية")
     elif confidence > 0.4:
         st.warning("⚠️ دقة متوسطة")
     else:
-        st.error("❌ دقة منخفضة - حاول صورة أوضح")
+        st.error("❌ دقة ضعيفة")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
