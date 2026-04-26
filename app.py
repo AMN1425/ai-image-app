@@ -94,13 +94,11 @@ def translate(label):
 # =========================
 
 def load_labels():
-if os.path.exists("labels.json"):
-with open("labels.json", "r") as f:
-return json.load(f)
-else:
-return []
-
-labels = load_labels()
+    if os.path.exists("labels.json"):
+        with open("labels.json", "r") as f:
+            return json.load(f)
+    else:
+        return []
 
 # =========================
 
