@@ -5,11 +5,19 @@ from torchvision import models, transforms
 import json
 import os
 
+# =========================
+
 # إعداد الصفحة
+
+# =========================
 
 st.set_page_config(page_title="كاشف الصور الذكي", layout="centered")
 
-# 🎨 تنسيق عربي
+# =========================
+
+# تنسيق عربي
+
+# =========================
 
 st.markdown("""
 
@@ -30,17 +38,27 @@ html, body, [class*="css"] {
     border: 1px solid #d0e3ff;
 }
 
-.center { text-align: center; }
+.center {
+    text-align: center;
+}
 </style>
 
 """, unsafe_allow_html=True)
 
+# =========================
+
 # العنوان
 
-st.title("🤖 مستكشف الصور الذكي")
-st.write("ارفع صورة أو التقط صورة وسأعطيك النتيجة النهائية مباشرة.")
+# =========================
 
-# 📚 قاموس ترجمة
+st.title("🤖 مستكشف الصور الذكي")
+st.write("ارفع صورة أو التقط صورة وسأعطيك النتيجة مباشرة بالعربي")
+
+# =========================
+
+# قاموس الترجمة
+
+# =========================
 
 AR_DICT = {
 "cat": "قطة",
@@ -69,17 +87,26 @@ def translate(label):
 label = label.lower()
 return AR_DICT.get(label, f"غير معروف ({label})")
 
-# تحميل labels من ملف محلي
+# =========================
+
+# تحميل labels
+
+# =========================
 
 def load_labels():
 if os.path.exists("labels.json"):
 with open("labels.json", "r") as f:
 return json.load(f)
 else:
-st.error("❌ ملف labels.json غير موجود")
 return []
 
+labels = load_labels()
+
+# =========================
+
 # تحميل النموذج
+
+# =========================
 
 @st.cache_resource
 def load_model():
@@ -87,10 +114,13 @@ model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
 model.eval()
 return model
 
-labels = load_labels()
 model = load_model()
 
+# =========================
+
 # تجهيز الصورة
+
+# =========================
 
 transform = transforms.Compose([
 transforms.Resize((256, 256)),
@@ -100,7 +130,11 @@ transforms.Normalize([0.485, 0.456, 0.406],
 [0.229, 0.224, 0.225])
 ])
 
-# اختيار المصدر
+# =========================
+
+# إدخال الصورة
+
+# =========================
 
 option = st.radio("اختر طريقة الإدخال:", ["رفع صورة", "التقاط بالكاميرا"])
 
@@ -116,7 +150,11 @@ camera = st.camera_input("التقط صورة")
 if camera:
 image = Image.open(camera).convert("RGB")
 
-# المعالجة
+# =========================
+
+# التحليل
+
+# =========================
 
 if image:
 st.image(image, caption="📷 الصورة المدخلة", use_container_width=True)
@@ -147,20 +185,23 @@ with st.spinner("🔍 جاري تحليل الصورة..."):
         st.progress(float(confidence))
         st.caption(f"نسبة الثقة: {conf_percent}%")
 
-        # تنبيه إذا الثقة ضعيفة
         if conf_percent < 50:
             st.warning("⚠️ النموذج غير متأكد من النتيجة")
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-    except Exception as e:
+    except Exception:
         st.error("❌ حدث خطأ أثناء تحليل الصورة")
 ```
 
 else:
 st.warning("⬆️ الرجاء إدخال صورة للبدء")
 
+# =========================
+
 # تذييل
 
+# =========================
+
 st.markdown("---")
-st.markdown("<div class='center'>💡 استخدم صورة واضحة للحصول على نتائج أدق</div>", unsafe_allow_html=True)
+st.markdown("<div class='center'>💡 استخدم صورة واضحة لتحصل على نتيجة أدق</div>", unsafe_allow_html=True)
